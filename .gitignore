@@ -1,2 +1,5 @@
-/venv
+venv/
 .todo
+gitfo/__pycache__/
+tests/__pycache__/
+.pytest_cache/
