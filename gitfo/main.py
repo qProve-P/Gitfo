@@ -1,7 +1,7 @@
 import typer, csv, json
 from typing_extensions import Annotated, Optional
 from gitfo import __appName__, __version__
-from .github_api import getRepoInfo, getLanguagesInfo, getRateLimit, getUserInfo
+from .github_api import getRepoInfo, getLanguagesInfo,getReleasesInfo, getOpenPRCount, getBranchesInfo, getRateLimit, getUserInfo
 from .util import prepareForCsv, printOutput
 
 app = typer.Typer(name=__appName__)
@@ -35,9 +35,17 @@ def repo(
 ):
     info = getRepoInfo(url, auth)
 
-    # if full:
-    #     languages = True
-    #     requestsInfo = getRequestsInfo(url, auth)
+    if full:
+        languages = True
+
+        releasesInfo = getReleasesInfo(url, auth)
+        info.update(releasesInfo)
+
+        pRCountInfo = getOpenPRCount(url, auth)
+        info.update(pRCountInfo)
+
+        branchesInfo = getBranchesInfo(url, auth)
+        info.update(branchesInfo)
     
     if languages:
         langInfo = getLanguagesInfo(url, auth)
@@ -67,6 +75,7 @@ def repo(
                     json.dump(info, f, ensure_ascii=False, indent=2)
                 case _:
                     typer.secho(f".{fileType} is not supported. Use .txt|.csv|.json.", fg=typer.colors.RED)
+                    return
     else:
         printOutput(info)
 
