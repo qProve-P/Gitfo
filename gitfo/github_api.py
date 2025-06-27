@@ -1,15 +1,17 @@
 import requests
-from typing import Dict
+from .util import getHeaders
 
-headers = {
-    "Accept": "application/vnd.github.mercy-preview+json",
-    "Authorization": "token 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"
-}
+def getRepoInfo(url: str, token: str)-> dict:
 
-def getRepoInfo(url: str)-> Dict[str, str]:
+    headers = getHeaders(token)
 
     req = requests.get(url, headers=headers)
     data = req.json()
+
+    if data.get("message") != None:
+        return {
+            "message": data.get("message"),
+        }
 
     return {
         "name": data.get("name"),
@@ -30,6 +32,47 @@ def getRepoInfo(url: str)-> Dict[str, str]:
             "login": data["owner"]["login"],
             "type": data["owner"]["type"]
         }
+    }
+
+def getLanguagesInfo(url: str, token: str)-> dict:
+    headers = getHeaders(token)
+
+    req = requests.get(url+"/languages", headers=headers)
+    data = req.json()
+
+    if data.get("message") != None:
+        return {
+            "message": data.get("message"),
+        }
+    
+    total = sum(data.values())
+    if total == 0:
+        return {"languages": {}}
+
+    percentages = {
+        lang: round((bytes_ / total) * 100, 2)
+        for lang, bytes_ in sorted(data.items(), key=lambda x: x[1], reverse=True)
+    }
+
+    return {
+        "languages": percentages,
+    }
+
+def getRateLimit(token: str)-> dict:
+    headers = getHeaders(token)
+
+    req = requests.get("https://api.github.com/rate_limit", headers=headers)
+    data = req.json()
+
+    if data.get("message") != None:
+        return {
+            "message": data.get("message"),
+        }
+    
+    return {
+        "limit": data.get("resources").get("core", {}).get("limit"),
+        "used": data.get("resources").get("core", {}).get("used"),
+        "remaining": data.get("resources").get("core", {}).get("remaining"),
     }
 
 def getUserInfo(url: str):
