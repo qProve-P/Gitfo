@@ -1,4 +1,4 @@
-import csv, typer
+import csv, json, typer
 
 def prepareForCsv(dictonary: dict)-> dict:
     out = {}
@@ -12,8 +12,8 @@ def prepareForCsv(dictonary: dict)-> dict:
     
     return out
 
-def printOutput(inp: dict)-> None:
-    for key, value in inp.items():
+def printOutput(info: dict)-> None:
+    for key, value in info.items():
         key = typer.style(key, fg=typer.colors.GREEN)
         if isinstance(value, list):
             typer.echo(f"{key}:")
@@ -26,6 +26,24 @@ def printOutput(inp: dict)-> None:
                 typer.echo(f"\t{valKey}: {valVal}")
         else:
             typer.echo(f"{key}: {value}")
+
+def printOutputToFile(info: dict, outputFile: str)-> None:
+    fileType = outputFile.split(".")[-1]
+    with open(outputFile, "w+") as f:
+        match fileType:
+            case "txt":
+                for key, value in info.items():
+                    f.write(f"{key}: {value}\n")
+            case "csv":
+                info = prepareForCsv(info)
+                writer = csv.DictWriter(f, info.keys())
+                writer.writeheader()
+                writer.writerow(info)
+            case "json":
+                json.dump(info, f, ensure_ascii=False, indent=2)
+            case _:
+                typer.secho(f".{fileType} is not supported. Use .txt|.csv|.json.", fg=typer.colors.RED)
+                return
 
 def getHeaders(token: str)-> dict:
     return {

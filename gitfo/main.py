@@ -1,8 +1,8 @@
-import typer, csv, json
+import typer
 from typing_extensions import Annotated, Optional
 from gitfo import __appName__, __version__
 from .github_api import getRepoInfo, getLanguagesInfo,getReleasesInfo, getOpenPRCount, getBranchesInfo, getRateLimit, getUserInfo
-from .util import prepareForCsv, printOutput
+from .util import printOutput, printOutputToFile
 
 app = typer.Typer(name=__appName__)
 
@@ -27,58 +27,60 @@ def limit(auth: Annotated[str, typer.Argument(help="Your Github token for author
 
 @app.command()
 def repo(
-    url: Annotated[str, typer.Argument(help="Url of git repository.")], 
+    target: Annotated[str, typer.Argument(help="Target Github repository.(owner/repository)")], 
     output: Annotated[Optional[str], typer.Option("--output", "-o", help="Name of output file. Supported file types: .txt|.csv|.json.")]=None,
     full: Annotated[Optional[bool], typer.Option("--full", help="Retrieve full details about the repository.(Requires more requests)")]=False,
     languages: Annotated[Optional[bool], typer.Option("--with-languages", help="Get full language breakdown.(Requires more requests)")]=False,
     auth: Annotated[Optional[str], typer.Option("--auth", "-a", help="Your Github token for authorization.")]="",
 ):
-    info = getRepoInfo(url, auth)
+    info = getRepoInfo(target, auth)
+
+    if "message" in info:
+        if info["message"] == "Not Found":
+            typer.secho(f"Repository '{target}' not found!", fg=typer.colors.RED)
+            return
+        elif info["message"] == "Bad credentials":
+            typer.secho(f"Authorization token incorrect!", fg=typer.colors.RED)
+            return
 
     if full:
         languages = True
 
-        releasesInfo = getReleasesInfo(url, auth)
+        releasesInfo = getReleasesInfo(target, auth)
         info.update(releasesInfo)
 
-        pRCountInfo = getOpenPRCount(url, auth)
+        pRCountInfo = getOpenPRCount(target, auth)
         info.update(pRCountInfo)
 
-        branchesInfo = getBranchesInfo(url, auth)
+        branchesInfo = getBranchesInfo(target, auth)
         info.update(branchesInfo)
     
     if languages:
-        langInfo = getLanguagesInfo(url, auth)
+        langInfo = getLanguagesInfo(target, auth)
         info.update(langInfo)
     
+    if output:
+        printOutputToFile(info, output)
+    else:
+        printOutput(info)
+
+@app.command()
+def user(
+    target: Annotated[str, typer.Argument(help="Target Github username.")],
+    output: Annotated[Optional[str], typer.Option("--output", "-o", help="Name of output file. Supported file types: .txt|.csv|.json.")]=None,
+    auth: Annotated[Optional[str], typer.Option("--auth", "-a", help="Your Github token for authorization.")]="",
+):
+    info = getUserInfo(target, auth)
+
     if "message" in info:
         if info["message"] == "Not Found":
-            typer.secho(f"Repository '{url}' not found!", fg=typer.colors.RED)
+            typer.secho(f"User '{target}' not found!", fg=typer.colors.RED)
             return
         elif info["message"] == "Bad credentials":
             typer.secho(f"Authorization token incorrect!", fg=typer.colors.RED)
             return
     
     if output:
-        fileType = output.split(".")[-1]
-        with open(output, "w+") as f:
-            match fileType:
-                case "txt":
-                    for key, value in info.items():
-                        f.write(f"{key}: {value}\n")
-                case "csv":
-                    info = prepareForCsv(info)
-                    writer = csv.DictWriter(f, info.keys())
-                    writer.writeheader()
-                    writer.writerow(info)
-                case "json":
-                    json.dump(info, f, ensure_ascii=False, indent=2)
-                case _:
-                    typer.secho(f".{fileType} is not supported. Use .txt|.csv|.json.", fg=typer.colors.RED)
-                    return
+        printOutputToFile(info, output)
     else:
         printOutput(info)
-
-@app.command()
-def user():
-    pass

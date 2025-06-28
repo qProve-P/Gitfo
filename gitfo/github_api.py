@@ -1,11 +1,11 @@
 import requests
 from .util import getHeaders
 
-def getRepoInfo(url: str, token: str)-> dict:
+def getRepoInfo(target: str, token: str)-> dict:
 
     headers = getHeaders(token)
 
-    req = requests.get(url, headers=headers)
+    req = requests.get(f"https://api.github.com/repos/{target}", headers=headers)
     data = req.json()
 
     if data.get("message") != None:
@@ -34,10 +34,10 @@ def getRepoInfo(url: str, token: str)-> dict:
         }
     }
 
-def getLanguagesInfo(url: str, token: str)-> dict:
+def getLanguagesInfo(target: str, token: str)-> dict:
     headers = getHeaders(token)
 
-    req = requests.get(url+"/languages", headers=headers)
+    req = requests.get(f"https://api.github.com/repos/{target}/languages", headers=headers)
     data = req.json()
 
     if data.get("message") != None:
@@ -58,10 +58,10 @@ def getLanguagesInfo(url: str, token: str)-> dict:
         "languages": percentages,
     }
 
-def getReleasesInfo(url: str, token: str)-> dict:
+def getReleasesInfo(target: str, token: str)-> dict:
     headers = getHeaders(token)
 
-    req = requests.get(url+"/releases/latest", headers=headers)
+    req = requests.get(f"https://api.github.com/repos/{target}/releases/latest", headers=headers)
     data = req.json()
 
     if data.get("message") == "Not Found":
@@ -79,20 +79,20 @@ def getReleasesInfo(url: str, token: str)-> dict:
         }
     }
     
-def getOpenPRCount(url: str, token: str)-> dict:
+def getOpenPRCount(target: str, token: str)-> dict:
     headers = getHeaders(token)
 
-    parts = url.rstrip("/").split("/")
+    parts = target.split("/")
 
-    req = requests.get(f"https://api.github.com/search/issues?q=repo:{parts[-2]}/{parts[-1]}+type:pr+state:open", headers=headers)
+    req = requests.get(f"https://api.github.com/search/issues?q=repo:{parts[0]}/{parts[1]}+type:pr+state:open", headers=headers)
     data = req.json()
 
     return {"open_pull_requests": data.get("total_count", 0)}
 
-def getBranchesInfo(url: str, token: str)-> dict:
+def getBranchesInfo(target: str, token: str)-> dict:
     headers = getHeaders(token)
 
-    req = requests.get(url+"/branches", headers=headers)
+    req = requests.get(f"https://api.github.com/repos/{target}/branches", headers=headers)
     data = req.json()
 
     return {
@@ -116,5 +116,33 @@ def getRateLimit(token: str)-> dict:
         "remaining": data.get("resources").get("core", {}).get("remaining"),
     }
 
-def getUserInfo(url: str):
-    pass
+def getUserInfo(target: str, token: str)-> dict:
+    # pass
+    headers = getHeaders(token)
+
+    req = requests.get(f"https://api.github.com/users/{target}", headers=headers)
+    data = req.json()
+
+    if data.get("message") != None:
+        return {
+            "message": data.get("message"),
+        }
+    
+    return {
+        "login": data.get("login"),
+        "id": data.get("id"),
+        "type": data.get("type"),
+        "name": data.get("name"),
+        "company": data.get("company"),
+        "blog": data.get("blog"),
+        "location": data.get("location"),
+        "email": data.get("email"),
+        "bio": data.get("bio"),
+        "twitter_username": data.get("twitter_username", None),
+        "public_repos": data.get("public_repos"),
+        "public_gists": data.get("public_gists"),
+        "followers": data.get("followers"),
+        "following": data.get("following"),
+        "created_at": data.get("created_at"),
+        "updated_at": data.get("updated_at"),
+    }
