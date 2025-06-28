@@ -117,7 +117,6 @@ def getRateLimit(token: str)-> dict:
     }
 
 def getUserInfo(target: str, token: str)-> dict:
-    # pass
     headers = getHeaders(token)
 
     req = requests.get(f"https://api.github.com/users/{target}", headers=headers)

@@ -12,7 +12,7 @@ def _versionCallback(value: bool, ctx: typer.Context):
         raise typer.Exit()
 
 @app.callback()
-def version(version: Annotated[bool, typer.Option("--version", "-v", help="Show the application's version.", callback=_versionCallback, is_eager=True)]=False):
+def version(version: Annotated[Optional[bool], typer.Option("--version", "-v", help="Show the application's version.", callback=_versionCallback, is_eager=True)]=False):
     return
 
 @app.command()
@@ -31,16 +31,19 @@ def repo(
     output: Annotated[Optional[str], typer.Option("--output", "-o", help="Name of output file. Supported file types: .txt|.csv|.json.")]=None,
     full: Annotated[Optional[bool], typer.Option("--full", help="Retrieve full details about the repository.(Requires more requests)")]=False,
     languages: Annotated[Optional[bool], typer.Option("--with-languages", help="Get full language breakdown.(Requires more requests)")]=False,
-    auth: Annotated[Optional[str], typer.Option("--auth", "-a", help="Your Github token for authorization.")]="",
+    auth: Annotated[Optional[str], typer.Option("--auth", "-a", help="Your Github token for authorization.")]=None,
 ):
     info = getRepoInfo(target, auth)
 
     if "message" in info:
-        if info["message"] == "Not Found":
+        if "Not Found" in info["message"]:
             typer.secho(f"Repository '{target}' not found!", fg=typer.colors.RED)
             return
-        elif info["message"] == "Bad credentials":
+        elif "Bad credentials" in info["message"]:
             typer.secho(f"Authorization token incorrect!", fg=typer.colors.RED)
+            return
+        elif "rate limit exceeded" in info["message"].lower():
+            typer.secho("Rate limit exceeded! Try again tomorrow or use authorization.", fg=typer.colors.RED)
             return
 
     if full:
@@ -68,7 +71,7 @@ def repo(
 def user(
     target: Annotated[str, typer.Argument(help="Target Github username.")],
     output: Annotated[Optional[str], typer.Option("--output", "-o", help="Name of output file. Supported file types: .txt|.csv|.json.")]=None,
-    auth: Annotated[Optional[str], typer.Option("--auth", "-a", help="Your Github token for authorization.")]="",
+    auth: Annotated[Optional[str], typer.Option("--auth", "-a", help="Your Github token for authorization.")]=None,
 ):
     info = getUserInfo(target, auth)
 
@@ -78,6 +81,9 @@ def user(
             return
         elif info["message"] == "Bad credentials":
             typer.secho(f"Authorization token incorrect!", fg=typer.colors.RED)
+            return
+        elif "rate limit exceeded" in info["message"].lower():
+            typer.secho("Rate limit exceeded! Try again tomorrow or use authorization.", fg=typer.colors.RED)
             return
     
     if output:

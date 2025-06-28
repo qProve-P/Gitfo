@@ -1,8 +1,8 @@
 import csv, json, typer
 
-def prepareForCsv(dictonary: dict)-> dict:
+def prepareForCsv(info: dict)-> dict:
     out = {}
-    for key, value in dictonary.items():
+    for key, value in info.items():
         if isinstance(value, list):
             out[key] = "|".join(map(str, value))
         elif isinstance(value, dict):
@@ -46,7 +46,11 @@ def printOutputToFile(info: dict, outputFile: str)-> None:
                 return
 
 def getHeaders(token: str)-> dict:
-    return {
+    headers = {
         "Accept": "application/vnd.github.mercy-preview+json",
-        "Authorization": f"token {token}"
     }
+
+    if token != None:
+        headers["Authorization"] = f"token {token}"
+
+    return headers
