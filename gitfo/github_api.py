@@ -71,11 +71,11 @@ def getReleasesInfo(target: str, token: str)-> dict:
     
     return {
         "latest_release": {
-            "tag": data.get("tag_name"),
+            "tag_name": data.get("tag_name"),
             "name": data.get("name"),
             "published_at": data.get("published_at"),
             "body": data.get("body", "").split("\n")[0],
-            "url": data.get("html_url"),
+            "html_url": data.get("html_url"),
         }
     }
     

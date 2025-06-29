@@ -12,7 +12,7 @@ def _versionCallback(value: bool, ctx: typer.Context):
         raise typer.Exit()
 
 @app.callback()
-def version(version: Annotated[Optional[bool], typer.Option("--version", "-v", help="Show the application's version.", callback=_versionCallback, is_eager=True)]=False):
+def version(version: Annotated[Optional[bool], typer.Option("--version", help="Show the application's version.", callback=_versionCallback, is_eager=True)]=False):
     return
 
 @app.command()
@@ -36,19 +36,18 @@ def repo(
     info = getRepoInfo(target, auth)
 
     if "message" in info:
-        if "Not Found" in info["message"]:
+        msg = info["message"]
+        if "Not Found" in msg:
             typer.secho(f"Repository '{target}' not found!", fg=typer.colors.RED)
             return
-        elif "Bad credentials" in info["message"]:
+        elif "Bad credentials" in msg:
             typer.secho(f"Authorization token incorrect!", fg=typer.colors.RED)
             return
-        elif "rate limit exceeded" in info["message"].lower():
+        elif "rate limit exceeded" in msg.lower():
             typer.secho("Rate limit exceeded! Try again tomorrow or use authorization.", fg=typer.colors.RED)
             return
 
     if full:
-        languages = True
-
         releasesInfo = getReleasesInfo(target, auth)
         info.update(releasesInfo)
 
@@ -57,6 +56,9 @@ def repo(
 
         branchesInfo = getBranchesInfo(target, auth)
         info.update(branchesInfo)
+
+        langInfo = getLanguagesInfo(target, auth)
+        info.update(langInfo)
     
     if languages:
         langInfo = getLanguagesInfo(target, auth)
@@ -76,13 +78,14 @@ def user(
     info = getUserInfo(target, auth)
 
     if "message" in info:
-        if info["message"] == "Not Found":
+        msg = info["message"]
+        if "Not Found" in msg:
             typer.secho(f"User '{target}' not found!", fg=typer.colors.RED)
             return
-        elif info["message"] == "Bad credentials":
+        elif "Bad credentials" in msg:
             typer.secho(f"Authorization token incorrect!", fg=typer.colors.RED)
             return
-        elif "rate limit exceeded" in info["message"].lower():
+        elif "rate limit exceeded" in msg.lower():
             typer.secho("Rate limit exceeded! Try again tomorrow or use authorization.", fg=typer.colors.RED)
             return
     
