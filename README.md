@@ -3,7 +3,6 @@
 [![GitHub version](https://img.shields.io/badge/version-0.1.0-green?logo=github&logoColor=white)](https://github.com/qProve-P/gitfo)
 [![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/qProve-P/gitfo/blob/main/LICENSE)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)
-![GitHub top language](https://img.shields.io/github/languages/top/qProve-P/gitfo)
 
 
 ---
