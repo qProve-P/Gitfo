@@ -75,7 +75,7 @@ python -m gitfo user octocat
 
 ### Save User Info To File:
 ```bash
-python -m gitfo user octocat --output user.json
+python -m gitfo user octocat -o user.json
 ```
 
 ### Get Your Rate Limit:
