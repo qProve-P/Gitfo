@@ -1,6 +1,6 @@
 # Gitfo
 
-[![GitHub version](https://img.shields.io/badge/version-0.1.0-green?logo=github&logoColor=white)](https://github.com/qProve-P/gitfo)
+[![GitHub version](https://img.shields.io/badge/version-0.2.0-green?logo=github&logoColor=white)](https://github.com/qProve-P/gitfo)
 [![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/qProve-P/gitfo/blob/main/LICENSE)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)
 
@@ -27,57 +27,67 @@ pip install -r requirements.txt
 
 ## Usage
 
-### Command Template:
+#### Command Template:
 ```bash
 python -m gitfo <command> [options]
 ```
 
-### Get Help About App:
+### Help
+---
+
+#### Get Help About App:
 ```bash
 python -m gitfo --help
 ```
 
-### Get Help About Command:
+#### Get Help About Command:
 ```bash
 python -m gitfo <command> --help
 ```
 
-### Repository Info:
+### General
+---
+
+#### Save Output To File:
+```bash
+python -m gitfo <command> <input> -o out.json
+```
+
+#### Use GitHub Token:
+```bash
+python -m gitfo <command> <input> -a YOUR_GITHUB_TOKEN
+```
+
+### Repository
+---
+
+#### Repository Info:
 ```bash
 python -m gitfo repo octocat/Hello-World
 ```
 
-### Repository With Languages:
+#### Repository With Languages:
 ```bash
 python -m gitfo repo octocat/Hello-World --with-languages
 ```
 
-### Full Repository Info (branches, languages, releases, PRs):
+#### Full Repository Info (branches, languages, releases, PRs):
 ```bash
 python -m gitfo repo octocat/Hello-World --full
 ```
 
-### Save Output To File:
-```bash
-python -m gitfo repo octocat/Hello-World -o repo.json
-```
+### User
+---
 
-### Use GitHub Token:
-```bash
-python -m gitfo repo octocat/Hello-World -a YOUR_GITHUB_TOKEN
-```
-
-### User Info:
+#### User Info:
 ```bash
 python -m gitfo user octocat
 ```
 
-### Save User Info To File:
-```bash
-python -m gitfo user octocat -o user.json
-```
+### Rate Limit:
+---
 
-### Get Your Rate Limit:
+#### Get Your Rate Limit:
 ```bash
 python -m gitfo limit YOUR_GITHUB_TOKEN
 ```

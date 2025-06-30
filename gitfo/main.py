@@ -70,6 +70,16 @@ def repo(
         printOutput(info)
 
 @app.command()
+def repobatch(
+    source: Annotated[str, typer.Argument(help="Your file with github repositories.(owner/repository)")],
+    output: Annotated[str, typer.Argument(help="Name of output file. Supported file types: .txt|.csv|.json.")],
+    full: Annotated[Optional[bool], typer.Option("--full", help="Retrieve full details about the repository.(Requires more requests)")]=False,
+    languages: Annotated[Optional[bool], typer.Option("--with-languages", help="Get full language breakdown.(Requires more requests)")]=False,
+    auth: Annotated[Optional[str], typer.Option("--auth", "-a", help="Your Github token for authorization.")]=None,
+):
+    pass
+
+@app.command()
 def user(
     target: Annotated[str, typer.Argument(help="Target Github username.")],
     output: Annotated[Optional[str], typer.Option("--output", "-o", help="Name of output file. Supported file types: .txt|.csv|.json.")]=None,
@@ -93,3 +103,11 @@ def user(
         printOutputToFile(info, output)
     else:
         printOutput(info)
+
+@app.command()
+def userbatch(
+    source: Annotated[str, typer.Argument(help="Your file with github repositories.(owner/repository)")],
+    output: Annotated[str, typer.Argument(help="Name of output file. Supported file types: .txt|.csv|.json.")],
+    auth: Annotated[Optional[str], typer.Option("--auth", "-a", help="Your Github token for authorization.")]=None,
+):
+    pass
