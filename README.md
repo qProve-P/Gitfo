@@ -4,7 +4,6 @@
 [![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/qProve-P/gitfo/blob/main/LICENSE)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)
 
-
 ---
 
 **Gitfo** is a command-line tool that retrieves information from the GitHub API about repositories and users. It supports detailed views, optional authentication, and output to various file formats.
