@@ -42,7 +42,30 @@ def printOutputToFile(info: dict, outputFile: str)-> None:
             case "json":
                 json.dump(info, f, ensure_ascii=False, indent=2)
             case _:
-                typer.secho(f".{fileType} is not supported. Use .txt|.csv|.json.", fg=typer.colors.RED)
+                typer.secho(f"File type '.{fileType}' is not supported. Use .txt|.csv|.json.", fg=typer.colors.RED)
+                return
+
+def printMultipleToFile(infos: list, outputFile: str)-> None:
+    fileType = outputFile.split(".")[-1]
+    with open(outputFile, "w+") as f:
+        match fileType:
+            case "txt":
+                for info in infos:
+                    for key, value in info.items():
+                        f.write(f"{key}: {value}\n")
+                    f.write("\n")
+            case "csv":
+                fieldnames = infos[0].keys()
+                for i in range(len(infos)):
+                    infos[i] = prepareForCsv(infos[i])
+
+                writer = csv.DictWriter(f, fieldnames)
+                writer.writeheader()
+                writer.writerows(infos)
+            case "json":
+                json.dump(infos, f, ensure_ascii=False, indent=2)
+            case _:
+                typer.secho(f"File type '.{fileType}' is not supported. Use .txt|.csv|.json.", fg=typer.colors.RED)
                 return
 
 def getHeaders(token: str)-> dict:
@@ -54,3 +77,14 @@ def getHeaders(token: str)-> dict:
         headers["Authorization"] = f"token {token}"
 
     return headers
+
+def getItems(source: str)-> list:
+    fileType = source.split(".")[-1]
+    if fileType != "txt":
+        typer.secho(f"File type '.{fileType}' is not supported as a source file. Use .txt.", fg=typer.colors.RED)
+        raise typer.Exit()
+    
+    with open(source, "r") as s:
+        out = [line.strip() for line in s]
+
+    return out

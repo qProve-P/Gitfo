@@ -12,7 +12,8 @@
 ## Features
 
 - Get detailed info about GitHub repositories
-- Query GitHub user profiles
+- Get info about GitHub user profiles
+- Get info about GitHub users and repositories in bulk from a file
 - Fetch releases, branches, open PR count, language breakdown
 - Use a GitHub token to bypass rate limits
 - Save results as `.json`, `.txt`, or `.csv`
@@ -82,6 +83,18 @@ python -m gitfo repo octocat/Hello-World --full
 #### User Info:
 ```bash
 python -m gitfo user octocat
+```
+
+### Bulk Operations:
+---
+#### Batch Of Repositories:
+```bash
+python -m gitfo repobatch <source file> <output file> [options]
+```
+
+#### Batch Of Users:
+```bash
+python -m gitfo userbatch <source file> <output file>
 ```
 
 ### Rate Limit:
