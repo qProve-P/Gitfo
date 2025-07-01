@@ -2,8 +2,8 @@
 #       Tests for util.py       #
 #################################
 
-import pytest, typer, os, shutil, csv, json
-from gitfo.util import prepareForCsv, printOutput, printOutputToFile, getHeaders
+import pytest, typer, os, shutil, csv, json, click
+from gitfo.util import prepareForCsv, printOutput, printOutputToFile, getHeaders, getItems, printMultipleToFile
 
 TEST_DATA = {
   "name": "Test",
@@ -110,3 +110,63 @@ def testGetHeadersWithAuth():
         "Accept": "application/vnd.github.mercy-preview+json",
         "Authorization": "token TestToken",
     }
+
+def testGetItems(tmp_path):
+    file = tmp_path/"repos.txt"
+    file.write_text("octocat/Hello-World\noctocat/Spoon-Knife\n")
+
+    result = getItems(str(file))
+    assert result == ["octocat/Hello-World", "octocat/Spoon-Knife"]
+
+def testGetItemsBadFileType(tmp_path, capsys):
+    file = tmp_path/"repos.csv"
+    file.write_text("octocat/Hello-World\n")
+
+    with pytest.raises(click.exceptions.Exit):
+        getItems(str(file))
+
+    captured = capsys.readouterr()
+    assert "not supported" in captured.out.lower()
+
+def testPrintMultipleToTxt(tmp_path):
+    infos = [{"name": "repo1", "stars": 5}, {"name": "repo2", "stars": 10}]
+    outputFile = tmp_path/"output.txt"
+
+    printMultipleToFile(infos, str(outputFile))
+
+    content = outputFile.read_text()
+    assert "name: repo1" in content
+    assert "stars: 5" in content
+    assert "name: repo2" in content
+
+def testPrintMultipleToCSV(tmp_path):
+    infos = [{"name": "repo1", "stars": 5}, {"name": "repo2", "stars": 10}]
+    outputFile = tmp_path/"output.csv"
+
+    printMultipleToFile(infos, str(outputFile))
+
+    with open(outputFile, newline="") as f:
+        reader = csv.DictReader(f)
+        rows = list(reader)
+    assert rows[0]["name"] == "repo1"
+    assert rows[0]["stars"] == "5"
+    assert rows[1]["name"] == "repo2"
+
+def testPrintMultipleToJson(tmp_path):
+    infos = [{"name": "repo1", "stars": 5}, {"name": "repo2", "stars": 10}]
+    outputFile = tmp_path/"output.json"
+
+    printMultipleToFile(infos, str(outputFile))
+
+    content = json.loads(outputFile.read_text())
+    assert content == infos
+
+def testPrintMultipleBadFileType(tmp_path, capsys):
+    infos = [{"name": "repo1", "stars": 5}, {"name": "repo2", "stars": 10}]
+    outputFile = tmp_path/"output.test"
+
+    with pytest.raises(click.exceptions.Exit):
+        printMultipleToFile(infos, str(outputFile))
+
+    captured = capsys.readouterr()
+    assert "not supported" in captured.out.lower()

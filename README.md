@@ -85,8 +85,9 @@ python -m gitfo repo octocat/Hello-World --full
 python -m gitfo user octocat
 ```
 
-### Bulk Operations:
+### Bulk Operations
 ---
+
 #### Batch Of Repositories:
 ```bash
 python -m gitfo repobatch <source file> <output file> [options]
@@ -97,7 +98,7 @@ python -m gitfo repobatch <source file> <output file> [options]
 python -m gitfo userbatch <source file> <output file>
 ```
 
-### Rate Limit:
+### Rate Limit
 ---
 
 #### Get Your Rate Limit:

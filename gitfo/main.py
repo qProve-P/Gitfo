@@ -1,5 +1,6 @@
 import typer
 from typing_extensions import Annotated, Optional
+from pathlib import Path
 from gitfo import __appName__, __version__
 from .github_api import getRepoInfo, getLanguagesInfo,getReleasesInfo, getOpenPRCount, getBranchesInfo, getRateLimit, getUserInfo
 from .util import printOutput, printOutputToFile, printMultipleToFile, getItems
@@ -77,6 +78,10 @@ def repobatch(
     languages: Annotated[Optional[bool], typer.Option("--with-languages", help="Get full language breakdown.(Requires more requests)")]=False,
     auth: Annotated[Optional[str], typer.Option("--auth", "-a", help="Your Github token for authorization.")]=None,
 ):
+    if not Path(source).is_file():
+        typer.secho(f"Source file '{source}' does not exist.", fg=typer.colors.RED)
+        raise typer.Exit()
+
     repos = getItems(source)
     infos = []
     
@@ -135,6 +140,10 @@ def userbatch(
     output: Annotated[str, typer.Argument(help="Name of output file. Supported file types: .txt|.csv|.json.")],
     auth: Annotated[Optional[str], typer.Option("--auth", "-a", help="Your Github token for authorization.")]=None,
 ):
+    if not Path(source).is_file():
+        typer.secho(f"Source file '{source}' does not exist.", fg=typer.colors.RED)
+        raise typer.Exit()
+
     users = getItems(source)
     infos = []
     for user in users:

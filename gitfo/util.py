@@ -1,4 +1,4 @@
-import csv, json, typer
+import csv, json, typer, os
 
 def prepareForCsv(info: dict)-> dict:
     out = {}
@@ -43,7 +43,9 @@ def printOutputToFile(info: dict, outputFile: str)-> None:
                 json.dump(info, f, ensure_ascii=False, indent=2)
             case _:
                 typer.secho(f"File type '.{fileType}' is not supported. Use .txt|.csv|.json.", fg=typer.colors.RED)
-                return
+                f.close()
+                os.remove(outputFile)
+                raise typer.Exit()
 
 def printMultipleToFile(infos: list, outputFile: str)-> None:
     fileType = outputFile.split(".")[-1]
@@ -66,7 +68,9 @@ def printMultipleToFile(infos: list, outputFile: str)-> None:
                 json.dump(infos, f, ensure_ascii=False, indent=2)
             case _:
                 typer.secho(f"File type '.{fileType}' is not supported. Use .txt|.csv|.json.", fg=typer.colors.RED)
-                return
+                f.close()
+                os.remove(outputFile)
+                raise typer.Exit()
 
 def getHeaders(token: str)-> dict:
     headers = {

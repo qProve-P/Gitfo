@@ -6,7 +6,7 @@ import pytest, typer
 from typer.testing import CliRunner
 from unittest.mock import patch
 from gitfo import __appName__, __version__
-from gitfo.main import version, limit, repo, user, app
+from gitfo.main import version, limit, repo, user, repobatch, userbatch, app
 
 runner = CliRunner()
 
@@ -28,11 +28,11 @@ def testLimitValidToken(mockPrintOutput, mockgetRateLimit):
     result = runner.invoke(app, ["limit", "validToken"])
 
     assert result.exit_code == 0
-    mockPrintOutput.assert_called_once_with = {
+    mockPrintOutput.assert_called_once_with({
         "limit": 5000,
         "used": 100,
         "remaining": 4900
-    }
+    })
 
 @patch("gitfo.main.getRateLimit")
 def testLimitBadToken(mockgetRateLimit):
@@ -56,10 +56,10 @@ def testRepoBasic(mockPrintOutput, mockGetRepoInfo):
     result = runner.invoke(app, ["repo", "octocat/Hello-World"])
 
     assert result.exit_code == 0
-    mockPrintOutput.assert_called_once_with = {
+    mockPrintOutput.assert_called_once_with({
         "name": "Hello-World",
         "stars": 3004
-    }
+    })
 
 @patch("gitfo.main.getRepoInfo")
 def testRepoNotFound(mockGetRepoInfo):
@@ -132,10 +132,10 @@ def testUserBasic(mockPrintOutput, mockGetUserInfo):
     result = runner.invoke(app, ["user", "octocat"])
     
     assert result.exit_code == 0
-    mockPrintOutput.assert_called_once_with = {
+    mockPrintOutput.assert_called_once_with({
         "login": "octocat", 
         "id": 1
-    }
+    })
 
 @patch("gitfo.main.getUserInfo")
 @patch("gitfo.main.printOutputToFile")
@@ -183,3 +183,96 @@ def testUserRateLimitExceeded(mockGetUserInfo):
     
     assert result.exit_code == 0
     assert "rate limit exceeded" in result.output.lower()
+
+@patch("gitfo.main.printMultipleToFile")
+@patch("gitfo.main.getLanguagesInfo")
+@patch("gitfo.main.getBranchesInfo")
+@patch("gitfo.main.getOpenPRCount")
+@patch("gitfo.main.getReleasesInfo")
+@patch("gitfo.main.getRepoInfo")
+@patch("gitfo.main.getItems")
+@patch("pathlib.Path.is_file")
+def testRepobatch(
+    mockIsFile,
+    mockGetItems,
+    mockGetRepoInfo,
+    mockGetReleasesInfo,
+    mockGetOpenPRCount,
+    mockGetBranchesInfo,
+    mockGetLanguagesInfo,
+    mockPrintMultipleToFile,
+):
+    mockIsFile.return_value = True
+    mockGetItems.return_value = ["owner/repo1", "owner/repo2"]
+
+    mockGetRepoInfo.side_effect = lambda repo, auth: {"repo": repo, "basic": True}
+    mockGetReleasesInfo.return_value = {"releases": "data"}
+    mockGetOpenPRCount.return_value = {"prs": 5}
+    mockGetBranchesInfo.return_value = {"branches": ["main"]}
+    mockGetLanguagesInfo.return_value = {"languages": {"Python": 100}}
+
+    result = runner.invoke(
+        app,
+        ["repobatch", "repos.txt", "output.json", "--full", "--with-languages"]
+    )
+
+    assert result.exit_code == 0
+    mockIsFile.assert_called_once_with()
+    mockGetItems.assert_called_once_with("repos.txt")
+    assert mockGetRepoInfo.call_count == 2
+    assert mockGetReleasesInfo.call_count == 2
+    assert mockGetOpenPRCount.call_count == 2
+    assert mockGetBranchesInfo.call_count == 2
+    assert mockGetLanguagesInfo.call_count >= 2
+    mockPrintMultipleToFile.assert_called_once()
+    args, kwargs = mockPrintMultipleToFile.call_args
+    assert isinstance(args[0], list)
+    assert args[1] == "output.json"
+
+@patch("pathlib.Path.is_file")
+def testRepobatchBadSource(mockIsFile):
+    mockIsFile.return_value = False
+
+    runner = CliRunner()
+    result = runner.invoke(app, ["repobatch", "nonexistent.txt", "output.json"])
+
+    assert "does not exist" in result.output
+
+@patch("gitfo.main.printMultipleToFile")
+@patch("gitfo.main.getUserInfo")
+@patch("gitfo.main.getItems")
+@patch("pathlib.Path.is_file")
+def testUserbatch(
+    mockIsFile,
+    mockGetItems,
+    mockGetUserInfo,
+    mockPrintMultipleToFile,
+):
+    mockIsFile.return_value = True
+    mockGetItems.return_value = ["user1", "user2"]
+    mockGetUserInfo.side_effect = lambda user, auth: {"user": user, "info": True}
+
+    result = runner.invoke(
+        app,
+        ["userbatch", "users.txt", "output.json", "--auth", "mytoken"]
+    )
+
+    assert result.exit_code == 0
+    mockIsFile.assert_called_once_with()
+    mockGetItems.assert_called_once_with("users.txt")
+    assert mockGetUserInfo.call_count == 2
+    mockGetUserInfo.assert_any_call("user1", "mytoken")
+    mockGetUserInfo.assert_any_call("user2", "mytoken")
+    mockPrintMultipleToFile.assert_called_once()
+    args, kwargs = mockPrintMultipleToFile.call_args
+    assert isinstance(args[0], list)
+    assert args[1] == "output.json"
+
+@patch("pathlib.Path.is_file")
+def testUserbatchBadSource(mockIsFile):
+    mockIsFile.return_value = False
+
+    runner = CliRunner()
+    result = runner.invoke(app, ["userbatch", "nonexistent.txt", "output.json"])
+
+    assert "does not exist" in result.output
