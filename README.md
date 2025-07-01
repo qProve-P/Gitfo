@@ -21,7 +21,7 @@
 ## Installation
 ```bash
 git clone https://github.com/qProve-P/Gitfo.git
-cd gitfo
+cd Gitfo
 pip install -r requirements.txt
 ```
 
