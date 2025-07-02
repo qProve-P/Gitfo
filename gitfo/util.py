@@ -36,7 +36,9 @@ def printOutputToFile(info: dict, outputFile: str)-> None:
                     f.write(f"{key}: {value}\n")
             case "csv":
                 info = prepareForCsv(info)
-                writer = csv.DictWriter(f, info.keys())
+                fieldnames = info.keys()
+
+                writer = csv.DictWriter(f, sorted(fieldnames))
                 writer.writeheader()
                 writer.writerow(info)
             case "json":
@@ -57,11 +59,13 @@ def printMultipleToFile(infos: list, outputFile: str)-> None:
                         f.write(f"{key}: {value}\n")
                     f.write("\n")
             case "csv":
-                fieldnames = infos[0].keys()
+                fieldnames = set()
+                for info in infos:
+                    fieldnames.update(info.keys())
                 for i in range(len(infos)):
                     infos[i] = prepareForCsv(infos[i])
 
-                writer = csv.DictWriter(f, fieldnames)
+                writer = csv.DictWriter(f, sorted(fieldnames))
                 writer.writeheader()
                 writer.writerows(infos)
             case "json":

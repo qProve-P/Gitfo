@@ -1,17 +1,29 @@
-import requests
+import requests, typer
 from .util import getHeaders
 
 def getRepoInfo(target: str, token: str)-> dict:
 
     headers = getHeaders(token)
 
-    req = requests.get(f"https://api.github.com/repos/{target}", headers=headers)
+    try:
+        req = requests.get(f"https://api.github.com/repos/{target}", headers=headers, timeout=10)
+    except requests.exceptions.RequestException:
+        typer.secho("Api not responding. Try again later.", fg=typer.colors.RED)
+        raise typer.Exit()
+
     data = req.json()
 
-    if data.get("message") != None:
-        return {
-            "message": data.get("message"),
-        }
+    msg = data.get("message")
+    if msg != None:
+        if "Not Found" in msg:
+            return {
+                "full_name": target,
+                "error": msg
+            }
+        else:
+            return {
+                "message": msg,
+            }
 
     return {
         "name": data.get("name"),
@@ -37,7 +49,12 @@ def getRepoInfo(target: str, token: str)-> dict:
 def getLanguagesInfo(target: str, token: str)-> dict:
     headers = getHeaders(token)
 
-    req = requests.get(f"https://api.github.com/repos/{target}/languages", headers=headers)
+    try:
+        req = requests.get(f"https://api.github.com/repos/{target}/languages", headers=headers, timeout=10)
+    except requests.exceptions.RequestException:
+        typer.secho("Api not responding. Try again later.", fg=typer.colors.RED)
+        raise typer.Exit()
+    
     data = req.json()
 
     if data.get("message") != None:
@@ -61,7 +78,12 @@ def getLanguagesInfo(target: str, token: str)-> dict:
 def getReleasesInfo(target: str, token: str)-> dict:
     headers = getHeaders(token)
 
-    req = requests.get(f"https://api.github.com/repos/{target}/releases/latest", headers=headers)
+    try:
+        req = requests.get(f"https://api.github.com/repos/{target}/releases/latest", headers=headers, timeout=10)
+    except requests.exceptions.RequestException:
+        typer.secho("Api not responding. Try again later.", fg=typer.colors.RED)
+        raise typer.Exit()
+    
     data = req.json()
 
     if data.get("message") == "Not Found":
@@ -84,7 +106,12 @@ def getOpenPRCount(target: str, token: str)-> dict:
 
     parts = target.split("/")
 
-    req = requests.get(f"https://api.github.com/search/issues?q=repo:{parts[0]}/{parts[1]}+type:pr+state:open", headers=headers)
+    try:
+        req = requests.get(f"https://api.github.com/search/issues?q=repo:{parts[0]}/{parts[1]}+type:pr+state:open", headers=headers, timeout=10)
+    except requests.exceptions.RequestException:
+        typer.secho("Api not responding. Try again later.", fg=typer.colors.RED)
+        raise typer.Exit()
+
     data = req.json()
 
     return {"open_pull_requests": data.get("total_count", 0)}
@@ -92,7 +119,12 @@ def getOpenPRCount(target: str, token: str)-> dict:
 def getBranchesInfo(target: str, token: str)-> dict:
     headers = getHeaders(token)
 
-    req = requests.get(f"https://api.github.com/repos/{target}/branches", headers=headers)
+    try:
+        req = requests.get(f"https://api.github.com/repos/{target}/branches", headers=headers, timeout=10)
+    except requests.exceptions.RequestException:
+        typer.secho("Api not responding. Try again later.", fg=typer.colors.RED)
+        raise typer.Exit()
+
     data = req.json()
 
     return {
@@ -102,7 +134,12 @@ def getBranchesInfo(target: str, token: str)-> dict:
 def getRateLimit(token: str)-> dict:
     headers = getHeaders(token)
 
-    req = requests.get("https://api.github.com/rate_limit", headers=headers)
+    try:
+        req = requests.get("https://api.github.com/rate_limit", headers=headers, timeout=10)
+    except requests.exceptions.RequestException:
+        typer.secho("Api not responding. Try again later.", fg=typer.colors.RED)
+        raise typer.Exit()
+
     data = req.json()
 
     if data.get("message") != None:
@@ -119,13 +156,25 @@ def getRateLimit(token: str)-> dict:
 def getUserInfo(target: str, token: str)-> dict:
     headers = getHeaders(token)
 
-    req = requests.get(f"https://api.github.com/users/{target}", headers=headers)
+    try:
+        req = requests.get(f"https://api.github.com/users/{target}", headers=headers, timeout=10)
+    except requests.exceptions.RequestException:
+        typer.secho("Api not responding. Try again later.", fg=typer.colors.RED)
+        raise typer.Exit()
+
     data = req.json()
 
-    if data.get("message") != None:
-        return {
-            "message": data.get("message"),
-        }
+    msg = data.get("message")
+    if msg != None:
+        if "Not Found" in msg:
+            return {
+                "login": target,
+                "error": msg
+            }
+        else:
+            return {
+                "message": msg,
+            }
     
     return {
         "login": data.get("login"),

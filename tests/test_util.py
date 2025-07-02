@@ -66,6 +66,9 @@ def testPrintToCSV():
     with open(outputFile, newline="") as f:
         reader = csv.DictReader(f)
         rows = list(reader)
+        headers = reader.fieldnames
+
+    assert headers == sorted(TEST_DATA.keys())
 
     assert len(rows) == 1
     row = rows[0]
@@ -148,9 +151,15 @@ def testPrintMultipleToCSV(tmp_path):
     with open(outputFile, newline="") as f:
         reader = csv.DictReader(f)
         rows = list(reader)
+        headers = reader.fieldnames
+    
+    expectedHeaders = sorted(set().union(*infos))
+    assert headers == expectedHeaders
+
     assert rows[0]["name"] == "repo1"
     assert rows[0]["stars"] == "5"
     assert rows[1]["name"] == "repo2"
+    assert rows[1]["stars"] == "10"
 
 def testPrintMultipleToJson(tmp_path):
     infos = [{"name": "repo1", "stars": 5}, {"name": "repo2", "stars": 10}]
