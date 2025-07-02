@@ -3,7 +3,7 @@
 #################################
 
 import pytest, typer, os, shutil, csv, json, click
-from gitfo.util import prepareForCsv, printOutput, printOutputToFile, getHeaders, getItems, printMultipleToFile
+from gitfo.util import prepareForCsv, printOutput, printOutputToFile, getHeaders, getItems, printMultipleToFile, removeNotFound
 
 TEST_DATA = {
   "name": "Test",
@@ -179,3 +179,12 @@ def testPrintMultipleBadFileType(tmp_path, capsys):
 
     captured = capsys.readouterr()
     assert "not supported" in captured.out.lower()
+
+def testRemoveNotFound():
+    infos = [{"name": "repo1", "stars": 5}, {"name": "errorRepo", "error": "Not Found"}, {"name": "repo2", "stars": 10}]
+
+    expected = [{"name": "repo1", "stars": 5}, {"name": "repo2", "stars": 10}]
+
+    filtered = removeNotFound(infos)
+
+    assert filtered == expected

@@ -96,3 +96,11 @@ def getItems(source: str)-> list:
         out = [line.strip() for line in s]
 
     return out
+
+def removeNotFound(infos: list)-> list:
+    out = []
+    for info in infos:
+        if "error" in info and "not found" in info["error"].lower():
+            continue
+        out.append(info)
+    return out

@@ -3,7 +3,7 @@ from typing_extensions import Annotated, Optional
 from pathlib import Path
 from gitfo import __appName__, __version__
 from .github_api import getRepoInfo, getLanguagesInfo,getReleasesInfo, getOpenPRCount, getBranchesInfo, getRateLimit, getUserInfo
-from .util import printOutput, printOutputToFile, printMultipleToFile, getItems
+from .util import printOutput, printOutputToFile, printMultipleToFile, getItems, removeNotFound
 
 app = typer.Typer(name=__appName__)
 
@@ -76,6 +76,7 @@ def repobatch(
     output: Annotated[str, typer.Argument(help="Name of output file. Supported file types: .txt|.csv|.json.")],
     full: Annotated[Optional[bool], typer.Option("--full", help="Retrieve full details about the repository.(Requires more requests)")]=False,
     languages: Annotated[Optional[bool], typer.Option("--with-languages", help="Get full language breakdown.(Requires more requests)")]=False,
+    skipNotFound: Annotated[Optional[bool], typer.Option("--skip-not-found", help="Skip non-existing repositories.")]=False,
     auth: Annotated[Optional[str], typer.Option("--auth", "-a", help="Your Github token for authorization.")]=None,
 ):
     if not Path(source).is_file():
@@ -106,6 +107,9 @@ def repobatch(
             info.update(langInfo)
 
         infos.append(info)
+
+    if skipNotFound:
+        infos = removeNotFound(infos)
     
     printMultipleToFile(infos, output)
     
@@ -138,6 +142,7 @@ def user(
 def userbatch(
     source: Annotated[str, typer.Argument(help="Path to your .txt file with GitHub usernames — one per line.")],
     output: Annotated[str, typer.Argument(help="Name of output file. Supported file types: .txt|.csv|.json.")],
+    skipNotFound: Annotated[Optional[bool], typer.Option("--skip-not-found", help="Skip non-existing users.")]=False,
     auth: Annotated[Optional[str], typer.Option("--auth", "-a", help="Your Github token for authorization.")]=None,
 ):
     if not Path(source).is_file():
@@ -149,5 +154,8 @@ def userbatch(
     for user in users:
         info = getUserInfo(user, auth)
         infos.append(info)
+
+    if skipNotFound:
+        infos = removeNotFound(infos)
 
     printMultipleToFile(infos, output)

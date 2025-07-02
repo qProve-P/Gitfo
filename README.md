@@ -87,6 +87,11 @@ python -m gitfo user octocat
 ### Bulk Operations
 ---
 
+#### Skip non-existing:
+```bash
+python -m gitfo <command> <source file> <output file> --skip-not-found
+```
+
 #### Batch Of Repositories:
 ```bash
 python -m gitfo repobatch <source file> <output file> [options]

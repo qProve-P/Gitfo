@@ -225,7 +225,7 @@ def testRepobatch(
     assert mockGetBranchesInfo.call_count == 2
     assert mockGetLanguagesInfo.call_count >= 2
     mockPrintMultipleToFile.assert_called_once()
-    args, kwargs = mockPrintMultipleToFile.call_args
+    args, _ = mockPrintMultipleToFile.call_args
     assert isinstance(args[0], list)
     assert args[1] == "output.json"
 
@@ -237,6 +237,44 @@ def testRepobatchBadSource(mockIsFile):
     result = runner.invoke(app, ["repobatch", "nonexistent.txt", "output.json"])
 
     assert "does not exist" in result.output
+
+@patch("gitfo.main.printMultipleToFile")
+@patch("gitfo.main.removeNotFound")
+@patch("gitfo.main.getRepoInfo")
+@patch("gitfo.main.getItems")
+@patch("pathlib.Path.is_file")
+def testRepobatchSkipNotFound(
+    mockIsFile,
+    mockGetItems,
+    mockGetRepoInfo,
+    mockRemoveNotFound,
+    mockPrintMultipleToFile,
+):
+    mockIsFile.return_value = True
+    mockGetItems.return_value = ["owner/repo1", "owner/repo2"]
+    
+    mockGetRepoInfo.side_effect = [
+        {"name": "repo1"},
+        {"error": "Not Found"}
+    ]
+    
+    mockRemoveNotFound.return_value = [{"name": "repo1"}]
+
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        ["repobatch", "repos.txt", "output.json", "--skip-not-found"]
+    )
+
+    assert result.exit_code == 0
+    mockRemoveNotFound.assert_called_once_with([
+        {"name": "repo1"},
+        {"error": "Not Found"}
+    ])
+    mockPrintMultipleToFile.assert_called_once_with(
+        [{"name": "repo1"}], "output.json"
+    )
+    assert mockGetRepoInfo.call_count == 2
 
 @patch("gitfo.main.printMultipleToFile")
 @patch("gitfo.main.getUserInfo")
@@ -264,7 +302,7 @@ def testUserbatch(
     mockGetUserInfo.assert_any_call("user1", "mytoken")
     mockGetUserInfo.assert_any_call("user2", "mytoken")
     mockPrintMultipleToFile.assert_called_once()
-    args, kwargs = mockPrintMultipleToFile.call_args
+    args, _ = mockPrintMultipleToFile.call_args
     assert isinstance(args[0], list)
     assert args[1] == "output.json"
 
@@ -276,3 +314,41 @@ def testUserbatchBadSource(mockIsFile):
     result = runner.invoke(app, ["userbatch", "nonexistent.txt", "output.json"])
 
     assert "does not exist" in result.output
+
+@patch("gitfo.main.printMultipleToFile")
+@patch("gitfo.main.removeNotFound")
+@patch("gitfo.main.getUserInfo")
+@patch("gitfo.main.getItems")
+@patch("pathlib.Path.is_file")
+def testUserbatchSkipNotFound(
+    mockIsFile,
+    mockGetItems,
+    mockGetUserInfo,
+    mockRemoveNotFound,
+    mockPrintMultipleToFile,
+):
+    mockIsFile.return_value = True
+    mockGetItems.return_value = ["user1", "user2"]
+    
+    mockGetUserInfo.side_effect = [
+        {"name": "user1"},
+        {"error": "Not Found"}
+    ]
+    
+    mockRemoveNotFound.return_value = [{"name": "user1"}]
+
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        ["userbatch", "users.txt", "output.json", "--skip-not-found"]
+    )
+
+    assert result.exit_code == 0
+    mockRemoveNotFound.assert_called_once_with([
+        {"name": "user1"},
+        {"error": "Not Found"}
+    ])
+    mockPrintMultipleToFile.assert_called_once_with(
+        [{"name": "user1"}], "output.json"
+    )
+    assert mockGetUserInfo.call_count == 2
